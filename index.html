@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +24,7 @@
             font-family: 'Arial', sans-serif;
             color: #fff;
         }
-        
+
         .container {
             position: relative;
             width: 100vw;
@@ -32,22 +33,22 @@
             justify-content: center;
             align-items: center;
         }
-        
+
         video {
             display: none;
         }
-        
+
         canvas {
             position: absolute;
             width: 100%;
             height: 100%;
             object-fit: contain;
         }
-        
+
         #output_canvas {
             z-index: 1;
         }
-        
+
         .control-panel {
             position: absolute;
             top: 20px;
@@ -61,7 +62,7 @@
             z-index: 10;
             min-width: 250px;
         }
-        
+
         .score-display {
             font-size: 24px;
             font-weight: bold;
@@ -69,21 +70,21 @@
             color: #0ff;
             text-shadow: 0 0 10px #0ff;
         }
-        
+
         .music-info {
             font-size: 16px;
             margin-bottom: 10px;
             color: #f0f;
             text-shadow: 0 0 10px #f0f;
         }
-        
+
         .ai-commentary {
             font-size: 14px;
             color: #ff0;
             text-shadow: 0 0 10px #ff0;
             min-height: 40px;
         }
-        
+
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -98,7 +99,7 @@
             align-items: center;
             z-index: 100;
         }
-        
+
         .floating-element {
             position: absolute;
             font-size: 28px;
@@ -112,22 +113,31 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 100px;   /* 设置固定宽度 */
-            height: 120px;  /* 设置固定高度 */
+            width: 100px;
+            /* 设置固定宽度 */
+            height: 120px;
+            /* 设置固定高度 */
         }
-        
+
         @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(10deg); }
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(10deg);
+            }
         }
-        
+
         .particle {
             position: absolute;
             pointer-events: none;
             z-index: 4;
             border-radius: 50%;
         }
-        
+
         .status-text {
             margin-top: 20px;
             font-size: 18px;
@@ -135,6 +145,7 @@
         }
     </style>
 </head>
+
 <body>
     <div id="loading" class="loading-overlay">
         <h2>Initializing Cyberpunk Experience...</h2>
@@ -145,7 +156,7 @@
     <div class="container">
         <video id="input_video"></video>
         <canvas id="output_canvas"></canvas>
-        
+
         <div class="control-panel">
             <div class="score-display">Score: <span id="score">0</span></div>
             <div class="music-info">Track: Cyberpunk Groove</div>
@@ -162,7 +173,7 @@
         const loadingStatus = document.getElementById('loading-status');
         const scoreElement = document.getElementById('score');
         const aiCommentElement = document.getElementById('ai-comment');
-        
+
         // Game state
         let score = 0;
         let floatingElements = [];
@@ -173,7 +184,7 @@
         let frequencyData;
         let collisionSound; // 添加碰撞音效变量
         let speechSynthesis; // 添加语音合成功能
-        
+
         // Initialize audio
         function initAudio() {
             try {
@@ -181,83 +192,83 @@
                 analyser = audioContext.createAnalyser();
                 analyser.fftSize = 256;
                 frequencyData = new Uint8Array(analyser.frequencyBinCount);
-                
+
                 // Create audio element
                 audioElement = new Audio();
                 audioElement.crossOrigin = "anonymous";
                 audioElement.loop = true;
-                
+
                 // For demo purposes, we'll use a data URI for a short beep sound
                 audioElement.src = "data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
-                
+
                 const source = audioContext.createMediaElementSource(audioElement);
                 source.connect(analyser);
                 analyser.connect(audioContext.destination);
-                
+
                 audioElement.play().catch(e => console.log("Audio play error:", e));
-                
+
                 // 初始化碰撞音效
                 initCollisionSound();
-                
+
                 // 初始化语音合成功能
                 speechSynthesis = window.speechSynthesis;
             } catch (e) {
                 console.log("Web Audio API is not supported in this browser", e);
             }
         }
-        
+
         // 初始化碰撞音效
         function initCollisionSound() {
             try {
                 // 创建音频上下文
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 const ctx = new AudioContext();
-                
+
                 // 创建更有趣的儿童友好型音效
-                collisionSound = function() {
+                collisionSound = function () {
                     // 创建多个振荡器制造和弦效果
                     const oscillator1 = ctx.createOscillator();
                     const oscillator2 = ctx.createOscillator();
                     const oscillator3 = ctx.createOscillator();
                     const gainNode = ctx.createGain();
-                    
+
                     // 添加滤波器制造更丰富的音色
                     const filter = ctx.createBiquadFilter();
                     filter.type = "lowpass";
                     filter.frequency.value = 1000;
-                    
+
                     // 设置振荡器类型和频率，创造愉悦的和弦
                     oscillator1.type = 'sine';
                     oscillator1.frequency.value = 523.25; // C5
-                    
+
                     oscillator2.type = 'sine';
                     oscillator2.frequency.value = 659.25; // E5
-                    
+
                     oscillator3.type = 'triangle';
                     oscillator3.frequency.value = 783.99; // G5
-                    
+
                     // 添加一些随机性使每次碰撞略有不同
                     const randomness = Math.random() * 50;
                     oscillator1.frequency.value += randomness;
                     oscillator2.frequency.value += randomness;
                     oscillator3.frequency.value += randomness;
-                    
+
                     // 设置音量包络，让声音有"砰"的感觉
                     gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
                     gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-                    
+
                     // 连接节点：振荡器 -> 滤波器 -> 音量控制 -> 输出
                     oscillator1.connect(filter);
                     oscillator2.connect(filter);
                     oscillator3.connect(filter);
                     filter.connect(gainNode);
                     gainNode.connect(ctx.destination);
-                    
+
                     // 启动振荡器
                     oscillator1.start();
                     oscillator2.start();
                     oscillator3.start();
-                    
+
                     // 一段时间后停止
                     oscillator1.stop(ctx.currentTime + 0.4);
                     oscillator2.stop(ctx.currentTime + 0.4);
@@ -266,52 +277,79 @@
             } catch (e) {
                 console.log("Web Audio API is not supported", e);
                 // 如果Web Audio API不可用，回退到简单音效
-                collisionSound = function() {
+                collisionSound = function () {
                     const fallbackSound = new Audio();
                     fallbackSound.src = "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFfHp8fHx9fX1+fn5/f3+AgIGCg4OEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f7/AAECAwQFBgcICQoLDA0ODg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9AQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpbXF1eX2BhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4ubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx8vP09fb3+Pn6+/z9/v8A";
                     fallbackSound.play().catch(e => console.log("Sound play error:", e));
                 };
             }
         }
-        
+
         // 播放水果名称语音
+        // ...existing code...
         function speakFruitName(fruitName) {
-            if (speechSynthesis) {
-                // 停止任何正在播放的语音
-                speechSynthesis.cancel();
-                
-                // 创建一个新的语音实例
-                const utterance = new SpeechSynthesisUtterance(fruitName);
-                utterance.lang = 'en-US';
-                utterance.rate = 0.8; // 稍慢的语速，适合儿童
-                utterance.pitch = 1.2; // 稍高的音调
-                
-                // 播放语音
-                speechSynthesis.speak(utterance);
+            try {
+                // 停止并清理上一个播放实例（如果有）
+                if (window._ttsAudio && !window._ttsAudio.paused) {
+                    window._ttsAudio.pause();
+                    window._ttsAudio.currentTime = 0;
+                }
+
+                // 简单缓存已生成的音频 URL，减少重复请求
+                window._ttsCache = window._ttsCache || {};
+                if (window._ttsCache[fruitName]) {
+                    const cachedAudio = new Audio(window._ttsCache[fruitName]);
+                    cachedAudio.crossOrigin = 'anonymous';
+                    cachedAudio.play().catch(e => console.log('TTS play error:', e));
+                    window._ttsAudio = cachedAudio;
+                    return;
+                }
+
+                // 请求 textreadtts 服务以获取音频 URL
+                const apiUrl = `https://textreadtts.com/tts/convert?accessKey=FREE&language=english&speaker=speaker5&text=${encodeURIComponent(fruitName)}`;
+                fetch(apiUrl)
+                    .then(resp => resp.json())
+                    .then(json => {
+                        if (json && json.code === 0 && json.audio) {
+                            window._ttsCache[fruitName] = json.audio;
+                            const audio = new Audio(json.audio);
+                            audio.crossOrigin = 'anonymous';
+                            audio.play().catch(e => console.log('TTS play error:', e));
+                            window._ttsAudio = audio;
+                        } else {
+                            console.log('TTS response error:', json);
+                        }
+                    })
+                    .catch(err => {
+                        console.log('TTS fetch error:', err);
+                    });
+            } catch (e) {
+                console.log("TTS error:", e);
             }
         }
+        // ...existing code...
 
         // Create floating elements
         function createFloatingElements() {
             const fruits = [
-                {emoji: '🍎', name: 'Apple'},
-                {emoji: '🍌', name: 'Banana'},
-                {emoji: '🍇', name: 'Grapes'},
-                {emoji: '🍓', name: 'Strawberry'},
-                {emoji: '🍊', name: 'Orange'},
-                {emoji: '🍑', name: 'Peach'},
-                {emoji: '🍍', name: 'Pineapple'},
-                {emoji: '🥝', name: 'Kiwi'},
-                {emoji: '🥥', name: 'Coconut'},
-                {emoji: '🍉', name: 'Watermelon'}
+                { emoji: '🍎', name: 'Apple' },
+                { emoji: '🍌', name: 'Banana' },
+                { emoji: '🍇', name: 'Grapes' },
+                { emoji: '🍓', name: 'Strawberry' },
+                { emoji: '🍊', name: 'Orange' },
+                { emoji: '🍑', name: 'Peach' },
+                { emoji: '🍍', name: 'Pineapple' },
+                { emoji: '🥝', name: 'Kiwi' },
+                { emoji: '🥥', name: 'Coconut' },
+                { emoji: '🍉', name: 'Watermelon' }
             ];
-            
+
             // 只创建一个水果而不是10个
             const fruit = fruits[Math.floor(Math.random() * fruits.length)];
-            
+
             const element = document.createElement('div');
             element.className = 'floating-element';
-            
+
             // 增大水果元素的尺寸（从30px增加到60px，文字从14px增加到24px）
             element.innerHTML = `
                 <div style="text-align: center;">
@@ -319,7 +357,7 @@
                     <div style="font-size: 24px; margin-top: 10px;">${fruit.name}</div>
                 </div>
             `;
-            
+
             element.style.left = Math.random() * 80 + 10 + '%';
             element.style.top = Math.random() * 80 + 10 + '%';
             element.style.color = `hsl(${Math.random() * 360}, 100%, 70%)`;
@@ -330,7 +368,7 @@
                 speakFruitName(fruit.name);
             });
             document.body.appendChild(element);
-            
+
             floatingElements.push({
                 element: element,
                 x: parseFloat(element.style.left),
@@ -339,7 +377,7 @@
                 height: 120  // 增加高度以适应更大的元素
             });
         }
-        
+
         // Create particle explosion
         function createParticles(x, y, color) {
             for (let i = 0; i < 15; i++) {
@@ -351,7 +389,7 @@
                 particle.style.width = '8px';
                 particle.style.height = '8px';
                 document.body.appendChild(particle);
-                
+
                 particles.push({
                     element: particle,
                     x: x,
@@ -362,7 +400,7 @@
                 });
             }
         }
-        
+
         // Update particles
         function updateParticles() {
             for (let i = particles.length - 1; i >= 0; i--) {
@@ -370,53 +408,55 @@
                 p.x += p.vx;
                 p.y += p.vy;
                 p.life -= 2;
-                
+
                 p.element.style.left = p.x + 'px';
                 p.element.style.top = p.y + 'px';
                 p.element.style.opacity = p.life / 100;
-                
+
                 if (p.life <= 0) {
                     p.element.remove();
                     particles.splice(i, 1);
                 }
             }
         }
-        
+
         // Check collisions for both nose and hands
         function checkCollisions(noseX, noseY, leftHandX, leftHandY, rightHandX, rightHandY) {
             for (let i = floatingElements.length - 1; i >= 0; i--) {
                 const elem = floatingElements[i];
                 const elemX = (elem.x / 100) * window.innerWidth;
                 const elemY = (elem.y / 100) * window.innerHeight;
-                
+
                 // 调整碰撞检测区域以适应新的水果元素大小
                 const centerX = elemX + 50;  // 元素宽度的一半 (100/2)
                 const centerY = elemY + 60;  // 元素高度的一半 (120/2)
-                
+
                 // 检查鼻子碰撞
                 const noseDistance = Math.sqrt(Math.pow(noseX - centerX, 2) + Math.pow(noseY - centerY, 2));
-                
+
                 // 检查左手碰撞
                 let leftHandDistance = Infinity;
                 if (leftHandX && leftHandY) {
                     leftHandDistance = Math.sqrt(Math.pow(leftHandX - centerX, 2) + Math.pow(leftHandY - centerY, 2));
                 }
-                
+
                 // 检查右手碰撞
                 let rightHandDistance = Infinity;
                 if (rightHandX && rightHandY) {
                     rightHandDistance = Math.sqrt(Math.pow(rightHandX - centerX, 2) + Math.pow(rightHandY - centerY, 2));
                 }
-                
+
                 // 如果任一点距离足够近，就触发碰撞
                 if (noseDistance < 50 || leftHandDistance < 50 || rightHandDistance < 50) {
-                    // 获取水果名称并播放语音
-                    const fruitName = elem.element.querySelector('div:last-child').textContent;
+                    // 获取水果名称并播放语音 
+                    // const fruitName = elem.element.querySelector('div:last-child').textContent;
+                    const fruitName = document.querySelector('body > div.floating-element > div > div:nth-child(2)').textContent;
+                    console.log('碰撞的水果名称', fruitName);
                     speakFruitName(fruitName);
-                    
+
                     // Collision detected
                     createParticles(centerX, centerY, elem.element.style.color);
-                    
+
                     // 播放碰撞音效
                     if (collisionSound) {
                         try {
@@ -425,32 +465,32 @@
                             console.log("Sound play error:", e);
                         }
                     }
-                    
+
                     elem.element.remove();
                     floatingElements.splice(i, 1);
                     score += 10;
                     scoreElement.textContent = score;
-                    
+
                     // Add new element
                     setTimeout(() => {
                         const fruits = [
-                            {emoji: '🍎', name: 'Apple'},
-                            {emoji: '🍌', name: 'Banana'},
-                            {emoji: '🍇', name: 'Grapes'},
-                            {emoji: '🍓', name: 'Strawberry'},
-                            {emoji: '🍊', name: 'Orange'},
-                            {emoji: '🍑', name: 'Peach'},
-                            {emoji: '🍍', name: 'Pineapple'},
-                            {emoji: '🥝', name: 'Kiwi'},
-                            {emoji: '🥥', name: 'Coconut'},
-                            {emoji: '🍉', name: 'Watermelon'}
+                            { emoji: '🍎', name: 'Apple' },
+                            { emoji: '🍌', name: 'Banana' },
+                            { emoji: '🍇', name: 'Grapes' },
+                            { emoji: '🍓', name: 'Strawberry' },
+                            { emoji: '🍊', name: 'Orange' },
+                            { emoji: '🍑', name: 'Peach' },
+                            { emoji: '🍍', name: 'Pineapple' },
+                            { emoji: '🥝', name: 'Kiwi' },
+                            { emoji: '🥥', name: 'Coconut' },
+                            { emoji: '🍉', name: 'Watermelon' }
                         ];
-                        
+
                         const fruit = fruits[Math.floor(Math.random() * fruits.length)];
-                        
+
                         const element = document.createElement('div');
                         element.className = 'floating-element';
-                        
+
                         // 增大水果元素的尺寸（从30px增加到60px，文字从14px增加到24px）
                         element.innerHTML = `
                             <div style="text-align: center;">
@@ -458,13 +498,13 @@
                                 <div style="font-size: 24px; margin-top: 10px;">${fruit.name}</div>
                             </div>
                         `;
-                        
+
                         element.style.left = Math.random() * 80 + 10 + '%';
                         element.style.top = Math.random() * 80 + 10 + '%';
                         element.style.color = `hsl(${Math.random() * 360}, 100%, 70%)`;
                         element.style.animationDelay = Math.random() * 2 + 's';
                         document.body.appendChild(element);
-                        
+
                         floatingElements.push({
                             element: element,
                             x: parseFloat(element.style.left),
@@ -476,7 +516,7 @@
                 }
             }
         }
-        
+
         // Generate AI commentary
         async function generateAICommentary() {
             // In a real implementation, this would call the Gemini API
@@ -493,16 +533,16 @@
                 "Feel the rhythm!",
                 "Absolutely brilliant!"
             ];
-            
+
             const randomComment = comments[Math.floor(Math.random() * comments.length)];
             aiCommentElement.textContent = randomComment;
         }
-        
+
         // Initialize MediaPipe Pose
         loadingStatus.textContent = "Loading MediaPipe Pose...";
         const pose = new Pose({
             locateFile: (file) => {
-                if (file.endsWith('.tflite') || file.endsWith('.data') || file.endsWith('wasm') || file.endsWith('binarypb') || file.endsWith('js')) { 
+                if (file.endsWith('.tflite') || file.endsWith('.data') || file.endsWith('wasm') || file.endsWith('binarypb') || file.endsWith('js')) {
                     // 对于.tflite文件，使用本地文件
                     return `./${file}`;
                 }
@@ -510,31 +550,31 @@
                 return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
             }
         });
-        
+
         pose.setOptions({
             modelComplexity: 1,
             smoothLandmarks: true,
             minDetectionConfidence: 0.5,
             minTrackingConfidence: 0.5
         });
-        
+
         // Handle pose results
         function onResults(results) {
             // Hide loading screen on first frame
             if (loadingScreen.style.display !== 'none') {
                 loadingScreen.style.display = 'none';
             }
-            
+
             // Clear canvas
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            
+
             // Draw image with mirroring effect (like a mirror)
             canvasCtx.save();
             canvasCtx.translate(canvasElement.width, 0);
             canvasCtx.scale(-1, 1);
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.restore();
-            
+
             // Draw pose landmarks
             if (results.poseLandmarks) {
                 // Get audio frequency data if available
@@ -548,7 +588,7 @@
                     }
                     amplitude = 1 + (sum / frequencyData.length) / 50;
                 }
-                
+
                 // Apply mirroring to pose landmarks
                 const mirroredPoseLandmarks = results.poseLandmarks.map(landmark => {
                     return {
@@ -556,48 +596,48 @@
                         x: 1 - landmark.x  // Mirror the x-coordinate
                     };
                 });
-                
+
                 // Draw connections with neon style
                 drawConnectors(canvasCtx, mirroredPoseLandmarks, POSE_CONNECTIONS,
                     { color: '#00FFFF', lineWidth: 2 * amplitude });
-                
+
                 // Draw landmarks
                 drawLandmarks(canvasCtx, mirroredPoseLandmarks,
                     { color: '#FF00FF', lineWidth: 1, radius: 3 * amplitude });
-                
+
                 // Use nose landmark for interaction (landmark 0)
                 const nose = mirroredPoseLandmarks[0];
                 const noseX = nose.x * canvasElement.width;
                 const noseY = nose.y * canvasElement.height;
-                
+
                 // Draw larger nose point for visibility
                 canvasCtx.beginPath();
                 canvasCtx.arc(noseX, noseY, 10 * amplitude, 0, 2 * Math.PI);
                 canvasCtx.fillStyle = '#FFFF00';
                 canvasCtx.fill();
-                
+
                 // 获取左右手的关键点坐标
                 // 计算每只手的手掌中心点
                 let leftHandX, leftHandY, rightHandX, rightHandY;
                 let leftHandVisible = false, rightHandVisible = false;
-                
+
                 // 左手掌中心计算（基于手腕和手指根部关键点）
                 // 左手关键点: 15 (手腕), 17 (食指根部), 19 (中指根部), 21 (小指根部)
-                if (mirroredPoseLandmarks[15] && mirroredPoseLandmarks[17] && mirroredPoseLandmarks[19] && 
+                if (mirroredPoseLandmarks[15] && mirroredPoseLandmarks[17] && mirroredPoseLandmarks[19] &&
                     mirroredPoseLandmarks[21]) {
                     // 检查关键点的可见度（使用较低的阈值确保更好地显示）
-                    leftHandVisible = mirroredPoseLandmarks[15].visibility > 0.1 && 
-                                      mirroredPoseLandmarks[17].visibility > 0.1 && 
-                                      mirroredPoseLandmarks[19].visibility > 0.1 && 
-                                      mirroredPoseLandmarks[21].visibility > 0.1;
-                    
+                    leftHandVisible = mirroredPoseLandmarks[15].visibility > 0.1 &&
+                        mirroredPoseLandmarks[17].visibility > 0.1 &&
+                        mirroredPoseLandmarks[19].visibility > 0.1 &&
+                        mirroredPoseLandmarks[21].visibility > 0.1;
+
                     if (leftHandVisible) {
                         // 计算左手掌中心（手腕和三个手指根部的平均位置）
-                        leftHandX = (mirroredPoseLandmarks[15].x + mirroredPoseLandmarks[17].x + 
-                                   mirroredPoseLandmarks[19].x + mirroredPoseLandmarks[21].x) / 4 * canvasElement.width;
-                        leftHandY = (mirroredPoseLandmarks[15].y + mirroredPoseLandmarks[17].y + 
-                                   mirroredPoseLandmarks[19].y + mirroredPoseLandmarks[21].y) / 4 * canvasElement.height;
-                        
+                        leftHandX = (mirroredPoseLandmarks[15].x + mirroredPoseLandmarks[17].x +
+                            mirroredPoseLandmarks[19].x + mirroredPoseLandmarks[21].x) / 4 * canvasElement.width;
+                        leftHandY = (mirroredPoseLandmarks[15].y + mirroredPoseLandmarks[17].y +
+                            mirroredPoseLandmarks[19].y + mirroredPoseLandmarks[21].y) / 4 * canvasElement.height;
+
                         // 绘制左手点
                         canvasCtx.beginPath();
                         canvasCtx.arc(leftHandX, leftHandY, 10 * amplitude, 0, 2 * Math.PI);
@@ -605,24 +645,24 @@
                         canvasCtx.fill();
                     }
                 }
-                
+
                 // 右手掌中心计算（基于手腕和手指根部关键点）
                 // 右手关键点: 16 (手腕), 18 (食指根部), 20 (中指根部), 22 (小指根部)
-                if (mirroredPoseLandmarks[16] && mirroredPoseLandmarks[18] && mirroredPoseLandmarks[20] && 
+                if (mirroredPoseLandmarks[16] && mirroredPoseLandmarks[18] && mirroredPoseLandmarks[20] &&
                     mirroredPoseLandmarks[22]) {
                     // 检查关键点的可见度（使用较低的阈值确保更好地显示）
-                    rightHandVisible = mirroredPoseLandmarks[16].visibility > 0.1 && 
-                                       mirroredPoseLandmarks[18].visibility > 0.1 && 
-                                       mirroredPoseLandmarks[20].visibility > 0.1 && 
-                                       mirroredPoseLandmarks[22].visibility > 0.1;
-                    
+                    rightHandVisible = mirroredPoseLandmarks[16].visibility > 0.1 &&
+                        mirroredPoseLandmarks[18].visibility > 0.1 &&
+                        mirroredPoseLandmarks[20].visibility > 0.1 &&
+                        mirroredPoseLandmarks[22].visibility > 0.1;
+
                     if (rightHandVisible) {
                         // 计算右手掌中心（手腕和三个手指根部的平均位置）
-                        rightHandX = (mirroredPoseLandmarks[16].x + mirroredPoseLandmarks[18].x + 
-                                    mirroredPoseLandmarks[20].x + mirroredPoseLandmarks[22].x) / 4 * canvasElement.width;
-                        rightHandY = (mirroredPoseLandmarks[16].y + mirroredPoseLandmarks[18].y + 
-                                    mirroredPoseLandmarks[20].y + mirroredPoseLandmarks[22].y) / 4 * canvasElement.height;
-                        
+                        rightHandX = (mirroredPoseLandmarks[16].x + mirroredPoseLandmarks[18].x +
+                            mirroredPoseLandmarks[20].x + mirroredPoseLandmarks[22].x) / 4 * canvasElement.width;
+                        rightHandY = (mirroredPoseLandmarks[16].y + mirroredPoseLandmarks[18].y +
+                            mirroredPoseLandmarks[20].y + mirroredPoseLandmarks[22].y) / 4 * canvasElement.height;
+
                         // 绘制右手点
                         canvasCtx.beginPath();
                         canvasCtx.arc(rightHandX, rightHandY, 10 * amplitude, 0, 2 * Math.PI);
@@ -630,39 +670,39 @@
                         canvasCtx.fill();
                     }
                 }
-                
+
                 // Check for collisions with nose and hands (only check visible hands)
                 checkCollisions(
-                    noseX, noseY, 
-                    leftHandVisible ? leftHandX : null, 
-                    leftHandVisible ? leftHandY : null, 
-                    rightHandVisible ? rightHandX : null, 
+                    noseX, noseY,
+                    leftHandVisible ? leftHandX : null,
+                    leftHandVisible ? leftHandY : null,
+                    rightHandVisible ? rightHandX : null,
                     rightHandVisible ? rightHandY : null
                 );
             }
         }
-        
+
         pose.onResults(onResults);
-        
+
         // Initialize camera
         loadingStatus.textContent = "Accessing camera...";
         const camera = new Camera(videoElement, {
             onFrame: async () => {
-                await pose.send({image: videoElement});
+                await pose.send({ image: videoElement });
             },
             width: 1280,
             height: 720
         });
-        
+
         // Handle window resize
         function resizeCanvas() {
             canvasElement.width = window.innerWidth;
             canvasElement.height = window.innerHeight;
         }
-        
+
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
-        
+
         // Start everything
         Promise.all([
             camera.start().catch(err => {
@@ -679,7 +719,7 @@
         ]).then(() => {
             // Start AI commentary updates
             setInterval(generateAICommentary, 5000);
-            
+
             // Start particle updates
             function gameLoop() {
                 updateParticles();
@@ -691,4 +731,5 @@
         });
     </script>
 </body>
+
 </html>
